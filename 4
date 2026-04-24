@@ -1,0 +1,58 @@
+import cv2
+import numpy as np
+from google.colab.patches import cv2_imshow
+from google.colab import files
+import os
+
+
+if not os.path.exists("man.jpg"):
+    print("Please upload 'man.jpg' to proceed.")
+    uploaded = files.upload()
+    if 'man.jpg' not in uploaded:
+        print("Error: 'man.jpg' was not uploaded. Please ensure you upload the correct file.")
+
+
+image = cv2.imread("man.jpg")
+
+
+if image is None:
+    print("Error: Could not load image. Please ensure 'man.jpg' is in the correct directory and was uploaded successfully.")
+else:
+    
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    
+    face_cascade = cv2.CascadeClassifier(
+        cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+    )
+
+    
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+
+   
+    for (x, y, w, h) in faces:
+        face = gray[y:y+h, x:x+w]
+
+        
+        face_resized = cv2.resize(face, (100, 100))
+
+        
+        features = face_resized.flatten()
+
+        
+        avg = np.mean(features)
+
+        if avg < 110:
+            label = "Mask"
+            color = (0, 255, 0) 
+        else:
+            label = "No Mask"
+            color = (0, 0, 255) 
+
+        
+        cv2.rectangle(image, (x, y), (x+w, y+h), color, 2)
+        cv2.putText(image, label, (x, y-10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
+
+    
+    cv2_imshow(image)
